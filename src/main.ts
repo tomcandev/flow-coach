@@ -211,7 +211,7 @@ function renderDictation() {
   state.plays = 0;
   $('#view').innerHTML = `
   ${flowBanner()}
-  <section class="card">
+  <section class="card" data-item="${item.id}">
     <div class="row between">
       <div>
         <div class="eyebrow">Write From Dictation · ${state.flow ? 'Flow drill' : `Sentence ${state.dIndex + 1} of ${DICTATION_ITEMS.length}`}</div>
