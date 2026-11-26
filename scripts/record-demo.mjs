@@ -35,6 +35,11 @@ const context = udd
   ? await chromium.launchPersistentContext(udd, opts)
   : await (await chromium.launch(opts)).newContext(opts);
 const page = context.pages()[0] || (await context.newPage());
+const logFile = path.join(outDir, 'console.log');
+fs.writeFileSync(logFile, '');
+page.on('console', (m) => {
+  if (/warn|error/.test(m.type())) fs.appendFileSync(logFile, `${new Date().toISOString()} ${m.type()} ${m.text().slice(0, 400)}\n`);
+});
 
 // --- screencast capture ---
 const framesDir = path.join(outDir, 'frames');
@@ -125,7 +130,7 @@ function sloppy(s, level = 2) {
 await page.goto(url, { waitUntil: 'load' });
 await zoom();
 await sleep(1500);
-await card('Flow Coach', ['Hybrid AI practice for English test takers', 'Instant, private feedback with Gemini Nano on-device in Chrome', 'Deeper coaching with cloud Gemini · both through Firebase AI Logic'], 6500);
+await card('Flow Coach', ['Hybrid AI practice for English test takers', 'Instant, private feedback with Gemini Nano on-device in Chrome', 'Deeper coaching with cloud Gemini · both through Firebase AI Logic'], 5500);
 
 await caption('Millions of students and migrants sit English tests. In dictation, most points are lost to small slips: a missing -s, a dropped "the".', 5000);
 await caption('The header shows the AI engine. Gemini Nano runs on-device when Chrome has it; otherwise the Firebase AI Logic hybrid SDK falls back to cloud Gemini.', 5500);
@@ -171,9 +176,9 @@ await page.click('#next');
 await sleep(500);
 await caption('A mode switch compares Prefer on-device, On-device only and Cloud only live: the same request, the same JSON schema.', 0);
 await page.selectOption('#mode', 'only_in_cloud');
-await sleep(2500);
+await sleep(2000);
 await page.selectOption('#mode', 'prefer_on_device');
-await sleep(2500);
+await sleep(2000);
 
 // Short writing
 await page.click('[data-tab=writing]');
@@ -194,10 +199,10 @@ await sleep(6000);
 // Coach
 await page.click('[data-tab=coach]');
 await sleep(800);
-await caption('Coach & Flow: your history, saved per anonymous user in Firestore, shows which weakness costs the most points.', 5000);
+await caption('Coach & Flow: your history, saved per anonymous user in Firestore, shows which weakness costs the most points.', 4500);
 await caption('The coach report runs on cloud Gemini with a typed response schema: the pattern, 3 rules and a plan.', 0);
 await page.click('#report');
-await page.waitForSelector('#reportOut .report', { timeout: 60000 }).catch(() => {});
+await page.waitForSelector('#reportOut .report, #reportOut p.muted', { timeout: 70000 }).catch(() => {});
 await sleep(1200);
 await page.evaluate(() => document.getElementById('reportOut')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
 await sleep(7000);
@@ -226,7 +231,7 @@ await card('Flow Coach', [
   'App Check (reCAPTCHA Enterprise, enforced) · Anonymous Auth · Firestore offline · Remote Config · Hosting',
   'Live: flow-coach-hybrid.web.app',
   'Open source (Apache-2.0): github.com/tomcandev/flow-coach',
-], 7000);
+], 6000);
 
 await sleep(300);
 await cdp.send('Page.stopScreencast').catch(() => {});
@@ -240,6 +245,9 @@ const list = frames
 const listFile = path.join(outDir, 'frames.txt');
 fs.writeFileSync(listFile, list + `\nfile '${path.resolve(frames[frames.length - 1].f)}'\n`);
 const out = path.join(outDir, 'demo.mp4');
-execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', listFile, '-vf', `scale=${W}:${H}:force_original_aspect_ratio=decrease,pad=${W}:${H}:(ow-iw)/2:(oh-ih)/2:white,fps=30,format=yuv420p`, '-c:v', 'libx264', '-crf', '20', '-movflags', '+faststart', out]);
-console.log('VIDEO', out, frames.length, 'frames,', (end - (frames[0]?.t ?? 0)).toFixed(1), 's');
+// Keep the final video under the 3-minute limit by speeding it up slightly if needed.
+const total = end - (frames[0]?.t ?? 0);
+const factor = total > 172 ? (172 / total).toFixed(4) : '1';
+execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', listFile, '-vf', `setpts=${factor}*PTS,scale=${W}:${H}:force_original_aspect_ratio=decrease,pad=${W}:${H}:(ow-iw)/2:(oh-ih)/2:white,fps=30,format=yuv420p`, '-c:v', 'libx264', '-crf', '20', '-movflags', '+faststart', out]);
+console.log('VIDEO', out, frames.length, 'frames,', total.toFixed(1), 's captured, speed factor', factor);
 process.exit(0);

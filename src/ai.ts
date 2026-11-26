@@ -145,7 +145,13 @@ function parseJson<T>(text: string): T {
 
 async function run<T>(kind: 'tip' | 'writing', mode: Mode, prompt: string): Promise<AiResult<T>> {
   const t0 = performance.now();
-  const res = await hybridModel(kind, mode).generateContent(prompt);
+  const model = hybridModel(kind, mode);
+  // One retry smooths over a busy cloud backend (rate limits on the free tier).
+  const res = await model.generateContent(prompt).catch(async (e) => {
+    if (!navigator.onLine) throw e;
+    await new Promise((r) => setTimeout(r, 1500));
+    return model.generateContent(prompt);
+  });
   const ms = Math.round(performance.now() - t0);
   return {
     data: parseJson<T>(res.response.text()),
