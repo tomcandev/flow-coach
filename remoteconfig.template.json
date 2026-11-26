@@ -1,0 +1,16 @@
+{
+  "parameters": {
+    "hybrid_cloud_model": {
+      "defaultValue": {
+        "value": "gemini-3.5-flash-lite"
+      },
+      "description": "Cloud fallback model for instant feedback when Gemini Nano is not available"
+    },
+    "coach_model": {
+      "defaultValue": {
+        "value": "gemini-3.5-flash-lite"
+      },
+      "description": "Cloud model for the coach report and Flow plan. Set to gemini-3.5-flash for deeper reasoning when its latency is acceptable; the app falls back to hybrid_cloud_model after 25 s."
+    }
+  }
+}

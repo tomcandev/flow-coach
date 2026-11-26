@@ -1,0 +1,24 @@
+{
+  "name": "flow-coach",
+  "version": "1.0.0",
+  "description": "Hybrid AI English test practice: Gemini Nano on-device + cloud Gemini via Firebase AI Logic",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "deploy": "npm run build && firebase deploy --only hosting,firestore:rules"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "firebase": "^13.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.11",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  },
+  "private": true,
+  "type": "module"
+}
