@@ -82,25 +82,31 @@ res.response.inferenceSource;                      // 'on_device' | 'in_cloud' -
 git clone https://github.com/tomcandev/flow-coach.git
 cd flow-coach
 npm install
-npm run dev        # http://localhost:5173
-npm test           # marking engine tests
+cp .env.example .env.local   # then fill in your Firebase web config (see below)
+npm run dev                  # http://localhost:5173
+npm test                     # marking engine tests
 ```
 
-The app points at the public demo project `flow-coach-hybrid`. To use your own Firebase project:
+The Firebase web config is read from Vite env vars in `.env.local` (git-ignored). Nothing project-specific is committed.
 
-1. Create a project, add a Web app and put its config in `src/firebase.ts`.
+To set up your own Firebase project:
+
+1. Create a project and add a Web app. Run `firebase apps:sdkconfig web` and copy the values into `.env.local`.
 2. Enable **Firebase AI Logic** with the Gemini Developer API, **Authentication** (Anonymous), **Cloud Firestore**.
-3. Create a reCAPTCHA Enterprise key for your domains, register it in **App Check**, and put the site key in `src/firebase.ts`.
-4. For local development with App Check enforced, either add `localhost` to the reCAPTCHA key or put a debug token in `.env.local` as `VITE_APPCHECK_DEBUG_TOKEN` (see `.env.example`; never commit it).
-5. `firebase deploy --only hosting,firestore,remoteconfig`
+3. Restrict the browser API key in Google Cloud console > APIs & Services > Credentials:
+   - HTTP referrers: your Hosting domains and `http://localhost:*/*`.
+   - API restrictions: Identity Toolkit, Token Service, Firebase Installations, Cloud Firestore, Firebase App Check, Firebase Remote Config (+ Realtime), Firebase AI Logic. Do **not** add the Generative Language API; Firebase AI Logic calls Gemini for you.
+4. Create a reCAPTCHA Enterprise key for your domains (include `localhost` for development), register it in **App Check**, and set `VITE_RECAPTCHA_ENTERPRISE_SITE_KEY`. Turn on App Check enforcement for AI Logic and Firestore.
+5. Optional for local development: put an App Check debug token in `VITE_APPCHECK_DEBUG_TOKEN` (never commit it).
+6. `npm run build && firebase deploy --only hosting,firestore,remoteconfig`
 
-The Firebase web config in `src/firebase.ts` is public by design. It identifies the project; access is protected by App Check, Auth and security rules. There are no secrets in this repository.
+Firebase web config values end up in the browser bundle, as with any Firebase web app. They identify the project; access is protected by the key restrictions, App Check, Auth and security rules.
 
 ## Project layout
 
 ```
 src/ai.ts          Firebase AI Logic: hybrid models, on-device status, coach report
-src/firebase.ts    App, App Check, Auth, Firestore, Remote Config
+src/firebase.ts    App (config from env vars), App Check, Auth, Firestore, Remote Config
 src/scoring.ts     Deterministic word-by-word marker and mistake categories
 src/content.ts     48 original dictation sentences, 12 writing tasks
 src/main.ts        UI (no framework)

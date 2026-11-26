@@ -18,17 +18,25 @@ import {
 import { getRemoteConfig, fetchAndActivate, getValue } from 'firebase/remote-config';
 import type { MistakeCategory } from './scoring';
 
-// Firebase web config is public by design (it identifies the project, it does not authorise it).
-// Access is protected by App Check, Auth and Firestore security rules.
+// Firebase web config comes from Vite env vars (.env.local, git-ignored; see .env.example).
+// The values end up in the browser bundle, as for any Firebase web app. The API key is
+// restricted to this site's referrers and to the Firebase APIs the app uses, and access is
+// protected by App Check, Auth and Firestore security rules.
+const env = import.meta.env;
+function need(name: string): string {
+  const v = env[name] as string | undefined;
+  if (!v) throw new Error(`Missing ${name}. Copy .env.example to .env.local and fill it in.`);
+  return v;
+}
 export const firebaseConfig = {
-  apiKey: 'REDACTED_ROTATED_KEY',
-  authDomain: 'flow-coach-hybrid.firebaseapp.com',
-  projectId: 'flow-coach-hybrid',
-  storageBucket: 'flow-coach-hybrid.firebasestorage.app',
-  messagingSenderId: '573015524401',
-  appId: '1:573015524401:web:a2a9b1eea2c2ebc96cc110',
+  apiKey: need('VITE_FIREBASE_API_KEY'),
+  authDomain: need('VITE_FIREBASE_AUTH_DOMAIN'),
+  projectId: need('VITE_FIREBASE_PROJECT_ID'),
+  storageBucket: need('VITE_FIREBASE_STORAGE_BUCKET'),
+  messagingSenderId: need('VITE_FIREBASE_MESSAGING_SENDER_ID'),
+  appId: need('VITE_FIREBASE_APP_ID'),
 };
-const RECAPTCHA_ENTERPRISE_SITE_KEY = '6Lcb0zIuAAAAAEF4QCj6XYKcwIS_R4V3eVQUeiqY';
+const RECAPTCHA_ENTERPRISE_SITE_KEY = need('VITE_RECAPTCHA_ENTERPRISE_SITE_KEY');
 
 // Local development: set VITE_APPCHECK_DEBUG_TOKEN in .env.local (never commit it),
 // or set it to "true" to have the SDK print a fresh debug token in the console.
