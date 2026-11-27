@@ -1,10 +1,13 @@
 // Records the demo video of the live app with captions, using the system Chrome.
 //
-//   node scripts/record-demo.mjs [url] [outDir] [--user-data-dir=/path]
+//   node scripts/record-demo.mjs [url] [outDir] [--cdp=http://127.0.0.1:9333] [--user-data-dir=/path]
 //
 // Default url: https://flow-coach-hybrid.web.app, outDir: demo/raw
-// Pass --user-data-dir pointing at a Chrome profile copy that already has Gemini Nano
-// to record the on-device path; with a fresh temporary profile the cloud fallback is shown.
+// To record the on-device path, start a normal Chrome that already has Gemini Nano with
+// --remote-debugging-port=9333 and pass --cdp=http://127.0.0.1:9333. A Chrome launched by
+// Playwright cannot be used for that: its default flags turn off component updates and
+// optimization hints, so Chrome reports the on-device model as unavailable and the app
+// shows the cloud fallback instead.
 // Frames are captured with the Chrome DevTools screencast and encoded with the system ffmpeg.
 // Output: outDir/demo.mp4 (silent, captions burned into the page).
 
@@ -18,6 +21,7 @@ const args = process.argv.slice(2);
 const url = args.find((a) => a.startsWith('http')) || 'https://flow-coach-hybrid.web.app';
 const outDir = args.find((a) => !a.startsWith('http') && !a.startsWith('--')) || 'demo/raw';
 const udd = (args.find((a) => a.startsWith('--user-data-dir=')) || '').split('=')[1];
+const cdpUrl = (args.find((a) => a.startsWith('--cdp=')) || '').slice('--cdp='.length);
 fs.mkdirSync(outDir, { recursive: true });
 
 const W = 1280;
@@ -31,10 +35,14 @@ const opts = {
   viewport: { width: W, height: H },
   args: ['--autoplay-policy=no-user-gesture-required'],
 };
-const context = udd
-  ? await chromium.launchPersistentContext(udd, opts)
-  : await (await chromium.launch(opts)).newContext(opts);
-const page = context.pages()[0] || (await context.newPage());
+const attached = cdpUrl ? await chromium.connectOverCDP(cdpUrl) : null;
+const context = attached
+  ? attached.contexts()[0]
+  : udd
+    ? await chromium.launchPersistentContext(udd, opts)
+    : await (await chromium.launch(opts)).newContext(opts);
+const page = attached ? await context.newPage() : context.pages()[0] || (await context.newPage());
+if (attached) await page.setViewportSize({ width: W, height: H });
 const logFile = path.join(outDir, 'console.log');
 fs.writeFileSync(logFile, '');
 page.on('console', (m) => {
@@ -235,7 +243,12 @@ await card('Flow Coach', [
 
 await sleep(300);
 await cdp.send('Page.stopScreencast').catch(() => {});
-await context.close();
+if (attached) {
+  await page.close();
+  await attached.close();
+} else {
+  await context.close();
+}
 
 // Frames arrive only when the page changes; hold each frame until the next one.
 const end = frames.length ? frames[frames.length - 1].t + 0.5 : 0;
