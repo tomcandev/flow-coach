@@ -9,7 +9,7 @@
 **Links**
 - Live demo: https://flow-coach-hybrid.web.app
 - Code (Apache-2.0): https://github.com/tomcandev/flow-coach
-- Video: (YouTube link after upload)
+- Video: https://youtu.be/t29EipBZGcs
 
 ---
 

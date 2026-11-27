@@ -4,6 +4,8 @@
 
 Live demo: **https://flow-coach-hybrid.web.app** (Chrome on desktop)
 
+Demo video (3 min): https://youtu.be/t29EipBZGcs
+
 Built for Google's [#BuildHybridAI 2026](https://firebasehybridaihackathon.devpost.com/) hackathon. Platform: Web (Chrome).
 
 ---
