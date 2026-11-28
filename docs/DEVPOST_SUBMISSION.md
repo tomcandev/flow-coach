@@ -28,37 +28,37 @@ Flow Coach is a practice app for Write From Dictation and short writing.
 
 All 48 dictation sentences and 12 writing tasks are original.
 
-## How we built it
+## How I built it
 
-- **Firebase AI Logic, hybrid:** `getGenerativeModel(ai, { mode: InferenceMode.PREFER_ON_DEVICE, onDeviceParams, inCloudParams })` with the Gemini Developer API backend. Gemini Nano runs through Chrome's Prompt API; if it is unavailable the SDK falls back to `gemini-3.5-flash-lite`. We ask both engines for the same JSON shape (`responseConstraint` on-device, `responseSchema` in the cloud), so the UI does not care which one answered, and we read `response.inferenceSource` to show it.
+- **Firebase AI Logic, hybrid:** `getGenerativeModel(ai, { mode: InferenceMode.PREFER_ON_DEVICE, onDeviceParams, inCloudParams })` with the Gemini Developer API backend. Gemini Nano runs through Chrome's Prompt API; if it is unavailable the SDK falls back to `gemini-3.5-flash-lite`. I ask both engines for the same JSON shape (`responseConstraint` on-device, `responseSchema` in the cloud), so the UI does not care which one answered, and I read `response.inferenceSource` to show it.
 - **Model lifecycle:** `initializeDeviceModel()` runs from a click when Chrome reports the model as downloadable, and a tiny warm-up prompt loads Gemini Nano while the sentence is playing, so the tip is ready when the learner presses Enter.
 - **Cloud coach:** a separate cloud model call with a system instruction and a typed schema (weakness enum, rules, plan). The model name comes from **Remote Config**, with a timeout and fallback to the light model.
 - **Deterministic marking:** an LCS alignment scores words like the test, accepts British and American spelling, ignores extra words and classifies each lost point. AI explains; code decides the score. 6 unit tests cover it.
 - **Firebase:** App Check with reCAPTCHA Enterprise (enforced for AI Logic and Firestore), Anonymous Auth, Cloud Firestore with persistent local cache and per-user security rules, Remote Config, Hosting. The project was set up end to end from the Firebase CLI.
 - **Front end:** TypeScript and Vite, no framework, browser speech synthesis for audio.
 
-## Challenges we ran into
+## Challenges I ran into
 
-- **Judging where the score should come from.** Letting an LLM count correct words gives different answers on each run. We moved scoring into deterministic code and let Gemini do what it is good at: explaining why.
+- **Judging where the score should come from.** Letting an LLM count correct words gives different answers on each run. I moved scoring into deterministic code and let Gemini do what it is good at: explaining why.
 - **Same output from two very different models.** Gemini Nano and cloud Gemini needed matching JSON schemas and prompts short enough for the small model.
-- **First-call latency on-device.** Loading Gemini Nano into memory takes seconds the first time, so we warm it up during audio playback.
+- **First-call latency on-device.** Loading Gemini Nano into memory takes seconds the first time, so I warm it up during audio playback.
 - **Hardware variety.** Gemini Nano needs enough disk space and memory; on a machine short of disk Chrome reports it as unavailable. The hybrid mode made this invisible to the learner: the same feature silently used the cloud.
-- **Free-tier latency on larger cloud models.** We added a timeout and a fallback to the light model, configurable in Remote Config.
+- **Free-tier latency on larger cloud models.** I added a timeout and a fallback to the light model, configurable in Remote Config.
 
-## Accomplishments that we're proud of
+## Accomplishments that I'm proud of
 
 - A complete product loop, not a demo prompt: practise → exact mark → AI explanation → find the costliest weakness → train → re-test.
 - The learner always sees where the AI ran and how long it took.
 - It still works offline and degrades gracefully on any browser.
 - 100% original content and a public, Apache-2.0 codebase anyone can run on their own Firebase project.
 
-## What we learned
+## What I learned
 
 - Hybrid AI is a product decision, not just a technical one: the high-frequency, privacy-sensitive calls belong on-device; the rare, whole-history reasoning belongs in the cloud.
 - Structured output (`responseConstraint` / `responseSchema`) is what makes a small on-device model dependable inside a UI.
 - Pairing deterministic logic with generative AI gives learners scores they can trust and explanations they can use.
 
-## What's next
+## What's next for Flow Coach
 
 - Speaking practice with on-device audio input (the Prompt API accepts audio).
 - More task types (Reading fill-in-the-blanks, Summarise Written Text) and an IELTS mode.
@@ -84,6 +84,33 @@ Gemini Nano requirements: Chrome with the built-in Prompt API (tested on Chrome 
 ## Built during the hackathon period
 
 Everything in the repository was created from scratch between 26 and 30 November 2026: the app, the marking engine, all practice content and the Firebase project. No code from other projects was reused. The idea comes from my existing private PTE app (PTE Flow), but none of its code or content is in this repository. Open-source dependencies: Firebase JS SDK, Vite, TypeScript, playwright-core (demo recording only).
+
+---
+
+## Hackathon form answers (Devpost, additional info)
+
+- Devpost project page: https://devpost.com/software/flow-coach
+- Submitter type: Individual
+- Country of residence: Australia
+- Organization name: N/A
+- Project start date: 11-26-26
+- New or existing: New
+- Platform: Web (Chrome)
+- Working demo URL: https://flow-coach-hybrid.web.app
+- Licence URL: https://github.com/tomcandev/flow-coach/blob/main/LICENSE
+- Testing instructions: the section above, with one line added on top: "No credentials needed: the app signs you in anonymously."
+
+**Explain how your project meets the main technology requirement**
+
+Flow Coach is built on Firebase AI Logic hybrid inference (Firebase JS SDK, Gemini Developer API backend).
+
+1. Hybrid inference: every dictation answer and short-writing check calls getGenerativeModel(ai, { mode: InferenceMode.PREFER_ON_DEVICE, onDeviceParams, inCloudParams }). Gemini Nano answers on-device through Chrome's Prompt API. If the model is not available, the SDK falls back to gemini-3.5-flash-lite in the cloud. The header lets judges switch between Prefer on-device, On-device only and Cloud only.
+2. Same structured output from both engines: responseConstraint on-device and responseSchema in the cloud return the same JSON shape, so the UI does not depend on which engine answered. The app reads response.inferenceSource and shows a badge with the engine and the latency.
+3. Model lifecycle: the app checks availability, downloads Gemini Nano from a user click, and warms the model up while the audio plays.
+4. Cloud-only reasoning where it fits: the coach report sends the mistake history (counts and examples) to cloud Gemini with a system instruction and a typed schema. The model name comes from Remote Config.
+5. Why hybrid: feedback after every sentence means hundreds of calls per session. On-device makes them instant, free and private, and they keep working offline. The rare whole-history analysis runs in the cloud.
+
+Other Firebase products: App Check with reCAPTCHA Enterprise (enforced for AI Logic and Firestore), Anonymous Authentication, Cloud Firestore with offline cache, Remote Config and Hosting.
 
 ---
 
