@@ -1,0 +1,16 @@
+{"id":"s01","text":"[warmly] Hey! This is Flow Coach: hybrid AI practice for English test takers, built with Firebase AI Logic."}
+{"id":"s02","text":"Every week, I talk with students, nurses and skilled migrants getting ready for the PTE. And in dictation, they lose points on tiny slips... a missing S, a dropped \"the\"."}
+{"id":"s03","text":"[curious] See up here? That's the engine. My Chrome has Gemini Nano, so the AI runs right here, on this laptop. And if it doesn't, the same SDK simply falls back to cloud Gemini."}
+{"id":"s04","text":"Okay, let's try one. I play the sentence, type what I hear... and make a few typical mistakes."}
+{"id":"s05","text":"The mark is instant, and exact. Every lost point gets a category: ending, spelling, small word, or missed word."}
+{"id":"s06","text":"[excited] Then Gemini Nano explains each mistake, and gives me one tip. The badge shows it ran on-device, and how fast."}
+{"id":"s07","text":"Feedback after every single sentence means hundreds of AI calls per session. On-device, that's free, fast, and private."}
+{"id":"s08","text":"Now, I go offline. [impressed] And practice keeps working! The mark runs locally, Gemini Nano still gives feedback, and my history syncs later through Firestore."}
+{"id":"s09","text":"This switch compares prefer on-device, on-device only, and cloud only. Same request, same JSON schema."}
+{"id":"s10","text":"Short writing works the same way. Gemini points to the exact phrases to fix, and my writing never leaves the device."}
+{"id":"s11","text":"The Coach tab reads my history, and finds the weakness that costs me the most points."}
+{"id":"s12","text":"The report runs on cloud Gemini, with a typed schema: the pattern, three rules, and a plan."}
+{"id":"s13","text":"Then I hit Start Flow, and train that weakness on three matched sentences."}
+{"id":"s14","text":"Then I re-test, on three sentences I haven't seen."}
+{"id":"s15","text":"[proudly] Before and after, measured on new sentences. Find the weakness. Train it. Prove it."}
+{"id":"s16","text":"[warmly] Flow Coach is live, and it's open source. Thanks for watching!"}
